@@ -41,7 +41,7 @@ TESTS = test-int-types$(EXEEXT) test-object-io$(EXEEXT) \
 	test-louds-plus-trie$(EXEEXT) test-da-trie$(EXEEXT) \
 	test-basic-completer$(EXEEXT) \
 	test-value-order-completer$(EXEEXT)
-noinst_bin_PROGRAMS = $(am__EXEEXT_1)
+noinst_PROGRAMS = $(am__EXEEXT_1)
 subdir = test
 DIST_COMMON = $(dist_noinst_DATA) $(dist_noinst_HEADERS) \
 	$(srcdir)/Makefile.am $(srcdir)/Makefile.in
@@ -60,9 +60,7 @@ am__EXEEXT_1 = test-int-types$(EXEEXT) test-object-io$(EXEEXT) \
 	test-louds-plus-trie$(EXEEXT) test-da-trie$(EXEEXT) \
 	test-basic-completer$(EXEEXT) \
 	test-value-order-completer$(EXEEXT)
-am__installdirs = "$(DESTDIR)$(noinst_bindir)"
-noinst_binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
-PROGRAMS = $(noinst_bin_PROGRAMS)
+PROGRAMS = $(noinst_PROGRAMS)
 am_test_basic_completer_OBJECTS = test-basic-completer.$(OBJEXT)
 test_basic_completer_OBJECTS = $(am_test_basic_completer_OBJECTS)
 test_basic_completer_LDADD = $(LDADD)
@@ -230,7 +228,6 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AM_CXXFLAGS = -Wall -I../include/
-noinst_bindir = .
 test_int_types_SOURCES = test-int-types.cc
 test_object_io_SOURCES = test-object-io.cc
 test_object_array_SOURCES = test-object-array.cc
@@ -280,29 +277,9 @@ $(top_srcdir)/configure:  $(am__configure_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
-install-noinst_binPROGRAMS: $(noinst_bin_PROGRAMS)
-	@$(NORMAL_INSTALL)
-	test -z "$(noinst_bindir)" || $(MKDIR_P) "$(DESTDIR)$(noinst_bindir)"
-	@list='$(noinst_bin_PROGRAMS)'; for p in $$list; do \
-	  p1=`echo $$p|sed 's/$(EXEEXT)$$//'`; \
-	  if test -f $$p \
-	  ; then \
-	    f=`echo "$$p1" | sed 's,^.*/,,;$(transform);s/$$/$(EXEEXT)/'`; \
-	   echo " $(INSTALL_PROGRAM_ENV) $(noinst_binPROGRAMS_INSTALL) '$$p' '$(DESTDIR)$(noinst_bindir)/$$f'"; \
-	   $(INSTALL_PROGRAM_ENV) $(noinst_binPROGRAMS_INSTALL) "$$p" "$(DESTDIR)$(noinst_bindir)/$$f" || exit 1; \
-	  else :; fi; \
-	done
 
-uninstall-noinst_binPROGRAMS:
-	@$(NORMAL_UNINSTALL)
-	@list='$(noinst_bin_PROGRAMS)'; for p in $$list; do \
-	  f=`echo "$$p" | sed 's,^.*/,,;s/$(EXEEXT)$$//;$(transform);s/$$/$(EXEEXT)/'`; \
-	  echo " rm -f '$(DESTDIR)$(noinst_bindir)/$$f'"; \
-	  rm -f "$(DESTDIR)$(noinst_bindir)/$$f"; \
-	done
-
-clean-noinst_binPROGRAMS:
-	-test -z "$(noinst_bin_PROGRAMS)" || rm -f $(noinst_bin_PROGRAMS)
+clean-noinstPROGRAMS:
+	-test -z "$(noinst_PROGRAMS)" || rm -f $(noinst_PROGRAMS)
 test-basic-completer$(EXEEXT): $(test_basic_completer_OBJECTS) $(test_basic_completer_DEPENDENCIES) 
 	@rm -f test-basic-completer$(EXEEXT)
 	$(CXXLINK) $(test_basic_completer_OBJECTS) $(test_basic_completer_LDADD) $(LIBS)
@@ -545,9 +522,6 @@ check-am: all-am
 check: check-am
 all-am: Makefile $(PROGRAMS) $(DATA) $(HEADERS)
 installdirs:
-	for dir in "$(DESTDIR)$(noinst_bindir)"; do \
-	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
-	done
 install: install-am
 install-exec: install-exec-am
 install-data: install-data-am
@@ -574,7 +548,7 @@ maintainer-clean-generic:
 	@echo "it deletes files that may require special tools to rebuild."
 clean: clean-am
 
-clean-am: clean-generic clean-noinst_binPROGRAMS mostlyclean-am
+clean-am: clean-generic clean-noinstPROGRAMS mostlyclean-am
 
 distclean: distclean-am
 	-rm -rf ./$(DEPDIR)
@@ -592,7 +566,7 @@ info: info-am
 
 info-am:
 
-install-data-am: install-noinst_binPROGRAMS
+install-data-am:
 
 install-dvi: install-dvi-am
 
@@ -627,23 +601,22 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-noinst_binPROGRAMS
+uninstall-am:
 
 .MAKE: install-am install-strip
 
 .PHONY: CTAGS GTAGS all all-am check check-TESTS check-am clean \
-	clean-generic clean-noinst_binPROGRAMS ctags distclean \
+	clean-generic clean-noinstPROGRAMS ctags distclean \
 	distclean-compile distclean-generic distclean-tags distdir dvi \
 	dvi-am html html-am info info-am install install-am \
 	install-data install-data-am install-dvi install-dvi-am \
 	install-exec install-exec-am install-html install-html-am \
-	install-info install-info-am install-man \
-	install-noinst_binPROGRAMS install-pdf install-pdf-am \
-	install-ps install-ps-am install-strip installcheck \
-	installcheck-am installdirs maintainer-clean \
+	install-info install-info-am install-man install-pdf \
+	install-pdf-am install-ps install-ps-am install-strip \
+	installcheck installcheck-am installdirs maintainer-clean \
 	maintainer-clean-generic mostlyclean mostlyclean-compile \
 	mostlyclean-generic pdf pdf-am ps ps-am tags uninstall \
-	uninstall-am uninstall-noinst_binPROGRAMS
+	uninstall-am
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

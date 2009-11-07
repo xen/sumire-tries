@@ -16,8 +16,7 @@ TESTS = \
 	test-basic-completer \
 	test-value-order-completer
 
-noinst_bindir = .
-noinst_bin_PROGRAMS = $(TESTS)
+noinst_PROGRAMS = $(TESTS)
 
 test_int_types_SOURCES = test-int-types.cc
 test_object_io_SOURCES = test-object-io.cc
