@@ -300,11 +300,14 @@ inline void BasicTrieBuilder::clear()
 }
 
 inline UInt64 BasicTrieBuilder::get_last_value(
-	std::vector<BasicTrieBuilderTuple>::const_iterator,
+	std::vector<BasicTrieBuilderTuple>::const_iterator begin,
 	std::vector<BasicTrieBuilderTuple>::const_iterator end)
 {
+	assert(begin < end);
+
 	--end;
-	return end->value();
+	return (begin == end) ? end->value() :
+		std::max(end->value(), (end - 1)->value());
 }
 
 inline UInt64 BasicTrieBuilder::get_total_value(
