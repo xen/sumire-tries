@@ -1,6 +1,5 @@
-#summary Class list.
-
-= Class list =
+#summary Brief description of classes.
+#labels Featured
 
  * Trie builder
   * TrieBuilder
