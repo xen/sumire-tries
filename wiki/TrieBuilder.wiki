@@ -22,8 +22,90 @@ Reading and inserting keys one by one may be a better way.
 
 = Examples =
 
+The following example builds a trie from an unsorted lexicon given through
+the standard input stream.
+
 {{{
-// ...
+#include <sumire/trie-builder.h>
+#include <sumire/basic-trie.h>
+
+#include <algorithm>
+#include <iostream>
+#include <string>
+#include <vector>
+
+int main()
+{
+  // Reads a lexicon from the standard input stream.
+  std::vector<std::string> keys;
+  std::string line;
+  while (std::getline(std::cin, line))
+    keys.push_back(line);
+
+  // Sorts a lexicon and removes repeated keys.
+  std::sort(keys.begin(), keys.end());
+  keys.erase(std::unique(keys.begin(), keys.end()), keys.end());
+
+  // Inserts keys associated with IDs.
+  sumire::TrieBuilder trie_builder;
+  for (std::size_t key_id = 0; key_id < keys.size(); ++key_id)
+  {
+    if (!trie_builder.insert(keys[key_id].c_str(),
+        static_cast<sumire::UInt32>(key_id)))
+    {
+      std::cerr << "error: failed to insert a key: "
+                << keys[key_id] << std::endl;
+      return 1;
+    }
+  }
+
+  // Finishes inserting keys.
+  if (!trie_builder.finish())
+  {
+    std::cerr << "error: failed to finish building a trie" << std::endl;
+    return 2;
+  }
+
+  // Builds another kind of trie from a virtual trie of TrieBuilder.
+  sumire::BasicTrie trie;
+  if (!trie.build(trie_builder.virtual_trie()))
+  {
+    std::cerr << "error: failed to convert a trie" << std::endl;
+    return 3;
+  }
+
+  return 0;
+}
+}}}
+
+The next example reads keys from a sorted lexicon one by one.
+For simplicity, error messages are omitted.
+
+{{{
+#include <sumire/trie-builder.h>
+
+#include <iostream>
+#include <string>
+
+int main()
+{
+  sumire::UInt32 key_id = 0;
+  sumire::TrieBuilder trie_builder;
+
+  std::string key;
+  while (std::getline(std::cin, key))
+  {
+    // Note that if a lexicon contains a repeated key,
+    // the latter one will be used.
+    if (!trie_builder.insert(key.c_str(), key_id++))
+      return 1;
+  }
+
+  if (!trie_builder.finish())
+    return 2;
+
+  return 0;
+}
 }}}
 
 = Details =
@@ -35,25 +117,25 @@ namespace sumire
 class TrieBuilder
 {
 public:
-	TrieBuilder();
+  TrieBuilder();
 
-	const VirtualTrie &virtual_trie();
+  const VirtualTrie &virtual_trie();
 
-	bool insert(const char *key, UInt32 value = 0);
-	bool insert(const char *key, UInt32 length, UInt32 value);
-	bool finish();
+  bool insert(const char *key, UInt32 value = 0);
+  bool insert(const char *key, UInt32 length, UInt32 value);
+  bool finish();
 
-	bool initialized() const;
-	bool finished() const;
+  bool initialized() const;
+  bool finished() const;
 
-	UInt32 num_units() const;
-	UInt32 num_nodes() const;
-	UInt32 num_keys() const;
-	UInt32 size() const;
+  UInt32 num_units() const;
+  UInt32 num_nodes() const;
+  UInt32 num_keys() const;
+  UInt32 size() const;
 
-	void clear();
+  void clear();
 
-	void swap(TrieBuilder *target);
+  void swap(TrieBuilder *target);
 };
 }}}
 
@@ -74,16 +156,4 @@ bool TrieBuilder::insert(const char *key, UInt32 length, UInt32 value);
 
 {{{
 bool TrieBuilder::finish();
-}}}
-
-----
-
-{{{
-bool TrieBuilder::initialized() const;
-}}}
-
-----
-
-{{{
-bool TrieBuilder::finished() const;
 }}}
