@@ -1,0 +1,89 @@
+#summary Class to build a trie from a sorted lexicon.
+
+= Introduction =
+
+sumire::TrieBuilder is a class to build a trie.
+
+In sumire-tries, keys are associated with 31-bit unsigned integers
+called values and the values are used as IDs, weights, etc.
+
+Note that TrieBuilder builds a trie from a *sorted* lexicon.
+This means that keys must be inserted in sorted order,
+e.g. "apple" cannot be inserted after "orange".
+Therefore, if there is an unsorted lexicon given as std::vector<std::string>,
+the lexicon needs to be sorted by std::sort() or other ways.
+In some cases, std::map<std::string, int> could be an alternative of
+std::vector<std::string>.
+
+TrieBuilder can handle a large lexicon which consists of millions of keys.
+However, for such a large lexicon, std::vector<std::string> and
+std::map<std:string, int> are time and memory consuming.
+Reading and inserting keys one by one may be a better way.
+
+= Examples =
+
+{{{
+// ...
+}}}
+
+= Details =
+
+{{{
+#include <sumire/trie-builder.h>
+namespace sumire
+
+class TrieBuilder
+{
+public:
+	TrieBuilder();
+
+	const VirtualTrie &virtual_trie();
+
+	bool insert(const char *key, UInt32 value = 0);
+	bool insert(const char *key, UInt32 length, UInt32 value);
+	bool finish();
+
+	bool initialized() const;
+	bool finished() const;
+
+	UInt32 num_units() const;
+	UInt32 num_nodes() const;
+	UInt32 num_keys() const;
+	UInt32 size() const;
+
+	void clear();
+
+	void swap(TrieBuilder *target);
+};
+}}}
+
+----
+
+{{{
+const VirtualTrie &TrieBuilder::virtual_trie()
+}}}
+
+----
+
+{{{
+bool TrieBuilder::insert(const char *key, UInt32 value = 0);
+bool TrieBuilder::insert(const char *key, UInt32 length, UInt32 value);
+}}}
+
+----
+
+{{{
+bool TrieBuilder::finish();
+}}}
+
+----
+
+{{{
+bool TrieBuilder::initialized() const;
+}}}
+
+----
+
+{{{
+bool TrieBuilder::finished() const;
+}}}
