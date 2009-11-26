@@ -5,7 +5,7 @@
 sumire::CompleterBase is the base class of completers.
 
 In sumire-tries, key completion is to find keys starting with a specified
-sequence, e.g. a completer returns "apple" and "application" when "app" is
+sequence, e.g. a completer finds "apple" and "application" when "app" is
 given as the query.
 
 CompleterBase defines a common interface for interactive key completion.
@@ -48,11 +48,25 @@ public:
 virtual bool CompleterBase::start(const TrieBase &trie, UInt32 index) = 0
 }}}
 
+This function initializes key completion and returns if the initialization
+has succeeded (true) or not (false).
+
+An initialization fails iff the given trie is empty.
+
+After this function returns true, next() progresses key completion.
+
 ----
 
 {{{
 virtual bool CompleterBase::next() = 0
 }}}
+
+This function finds the first or next key and returns true if exists,
+otherwise it returns false.
+
+Note that this function must be called after start() returns true,
+and when this function has returned true, the key and its value are
+available by using key(), length(), and value().
 
 ----
 
@@ -60,14 +74,25 @@ virtual bool CompleterBase::next() = 0
 virtual const char *CompleterBase::key() const = 0
 }}}
 
+This function returns the completed part of the current key,
+e.g. if the query is "app" and the current key is "apple",
+this function returns only "le".
+
+Note that key(), length(), and value() must be called after next() returns true.
+Also, a pointer returned by key() will be invalid after the next call of next().
+
 ----
 
 {{{
 virtual UInt32 CompleterBase::length() const = 0
 }}}
 
+This function returns the length of the completed part of the current key.
+
 ----
 
 {{{
 virtual UInt32 CompleterBase::value() const = 0
 }}}
+
+This function returns the value associated with the current key.
