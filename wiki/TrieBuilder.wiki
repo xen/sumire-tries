@@ -145,6 +145,14 @@ public:
 const VirtualTrie &TrieBuilder::virtual_trie()
 }}}
 
+This function returns a virtual trie which partially implements sumire::TrieBase.
+
+Note that this function must be called after finish(),
+and a virtual trie is destroyed by clear() or ~TrieBuilder().
+
+A virtual trie is used as a source of a variety of tries by giving it
+to build() of sumire::TrieBase.
+
 ----
 
 {{{
@@ -152,8 +160,19 @@ bool TrieBuilder::insert(const char *key, UInt32 value = 0);
 bool TrieBuilder::insert(const char *key, UInt32 length, UInt32 value);
 }}}
 
+This function inserts a key value pair and returns whether an insertion has
+succeeded (true) or not (false).
+
+If the number of arguments is less than 3, a key is handled as a string
+terminated by zero.
+
+An insertion fails if a key length == 0, a value >= 2^31,
+an inserting key < the last inserted key, or finish() has been already called.
+
 ----
 
 {{{
 bool TrieBuilder::finish();
 }}}
+
+This function completes a trie and returns false iff already completed.
