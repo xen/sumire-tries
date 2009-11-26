@@ -1,15 +1,15 @@
-#summary Base class of a variety of tries.
+#summary The base class of a variety of tries.
 
 = Introduction =
 
-sumire::TrieBase is a base class of a variety of tries.
+sumire::TrieBase is the base class of a variety of tries.
 
 TrieBase declares a common interface and defines useful functions.
 The common interface provides functions to traverse a trie,
-and those functions are used in sumire::BasicCompleter and sumire::ValueOrderCompleter.
+and those functions are used in completers.
 Also, the common interface provides functions for I/O through std::iostream.
 In addition, for the use of memory mapped files, a function is provided
-for mapping a specified memory to a trie.
+for mapping specified memory to a trie.
 
 Due to this base class, different kinds of tries can be easily tested.
 
@@ -165,9 +165,9 @@ bool TrieBase::find(const char *key, UInt32 *value_ptr = NULL) const
 bool TrieBase::find(const char *key, UInt32 length, UInt32 *value_ptr = NULL) const
 }}}
 
-These functions check if a trie contains a given key or not
+These functions check if the trie contains a given key or not
 and returns true or false.
-Also, a value of that key is assigned to value_ptr if value_ptr != NULL.
+Also, the value of that key is assigned to value_ptr if value_ptr != NULL.
 
 ----
 
@@ -176,8 +176,8 @@ bool TrieBase::follow(UInt32 index, const char *seq, UInt32 *index_ptr) const
 bool TrieBase::follow(UInt32 index, const char *seq, UInt32 length, UInt32 *index_ptr) const
 }}}
 
-These functions follow a path corresponding to a given sequence and returns true
-if such a path exists, otherwise these functions return false.
+These functions follow a path corresponding to a given sequence and returns
+true if such a path exists, otherwise these functions return false.
 Also, the end index of that path is assigned to index_ptr if index_ptr != NULL.
 
 ----
@@ -195,7 +195,8 @@ and returns its index if exists, otherwise this function returns 0.
 virtual UInt32 TrieBase::child(UInt32 index) const = 0
 }}}
 
-This function returns the index of first child if exists, otherwise it returns 0.
+This function returns the index of the first child if exists,
+otherwise it returns 0.
 
 ----
 
@@ -203,7 +204,7 @@ This function returns the index of first child if exists, otherwise it returns 0
 virtual UInt32 TrieBase::sibling(UInt32 index) const = 0
 }}}
 
-This function returns the index of next sibling if exists,
+This function returns the index of the next sibling if exists,
 otherwise it returns 0.
 
 ----
@@ -212,7 +213,7 @@ otherwise it returns 0.
 virtual UInt8 TrieBase::label(UInt32 index) const = 0
 }}}
 
-This function returns an attached label.
+This function returns the attached label.
 
 ----
 
@@ -220,8 +221,9 @@ This function returns an attached label.
 virtual bool TrieBase::get_value(UInt32 index, UInt32 *value_ptr = NULL) const = 0
 }}}
 
-This function checks if a specified node is a terminal or not, and returns true or false.
-Also, a value of that terminal is assigned to value_ptr if value_ptr != NULL.
+This function checks if a specified node is a terminal or not,
+and returns true or false.
+Also, the value of that terminal is assigned to value_ptr if value_ptr != NULL.
 
 ----
 
