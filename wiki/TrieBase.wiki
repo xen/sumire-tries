@@ -155,12 +155,19 @@ public:
 virtual bool TrieBase::build(const TrieBase &trie) = 0
 }}}
 
+This function builds a trie from another trie and returns
+if it has succeeded (true) or not (false).
+
 ----
 
 {{{
 bool TrieBase::find(const char *key, UInt32 *value_ptr = NULL) const
 bool TrieBase::find(const char *key, UInt32 length, UInt32 *value_ptr = NULL) const
 }}}
+
+These functions check if a trie contains a given key or not
+and returns true or false.
+Also, a value of that key is assigned to value_ptr if value_ptr != NULL.
 
 ----
 
@@ -169,18 +176,35 @@ bool TrieBase::follow(UInt32 index, const char *seq, UInt32 *index_ptr) const
 bool TrieBase::follow(UInt32 index, const char *seq, UInt32 length, UInt32 *index_ptr) const
 }}}
 
+These functions follow a path corresponding to a given sequence and returns true
+if such a path exists, otherwise these functions return false.
+Also, the end index of that path is assigned to index_ptr if index_ptr != NULL.
+
 ----
 
 {{{
 virtual UInt32 TrieBase::find_child(UInt32 index, UInt8 child_label) const = 0
 }}}
 
+This function searches child nodes for a node having a specified label
+and returns its index if exists, otherwise this function returns 0.
+
 ----
 
 {{{
 virtual UInt32 TrieBase::child(UInt32 index) const = 0
+}}}
+
+This function returns the index of first child if exists, otherwise it returns 0.
+
+----
+
+{{{
 virtual UInt32 TrieBase::sibling(UInt32 index) const = 0
 }}}
+
+This function returns the index of next sibling if exists,
+otherwise it returns 0.
 
 ----
 
@@ -188,14 +212,39 @@ virtual UInt32 TrieBase::sibling(UInt32 index) const = 0
 virtual UInt8 TrieBase::label(UInt32 index) const = 0
 }}}
 
+This function returns an attached label.
+
+----
+
 {{{
 virtual bool TrieBase::get_value(UInt32 index, UInt32 *value_ptr = NULL) const = 0
+}}}
+
+This function checks if a specified node is a terminal or not, and returns true or false.
+Also, a value of that terminal is assigned to value_ptr if value_ptr != NULL.
+
+----
+
+{{{
 bool TrieBase::has_value(UInt32 index) const
+}}}
+
+This function is equal to get_value(index).
+
+----
+
+{{{
 UInt32 TrieBase::value(UInt32 index) const
 }}}
+
+This function calls get_value() and returns a value if it returns true,
+otherwise this function returns INVALID_VALUE.
 
 ----
 
 {{{
 UInt32 TrieBase::root() const
 }}}
+
+This function returns the root index which is used as the start position
+of traversing a trie.
