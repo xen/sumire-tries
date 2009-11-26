@@ -22,6 +22,40 @@ See also the documentation for derived classes.
 
 = Examples =
 
+The following example gives a function to find keys having a specified prefix.
+This function writes the completed keys to the standard output stream.
+The number of keys to be written is limited by the third argument.
+
+{{{
+#include <sumire/trie-base.h>
+#include <sumire/basic-completer.h>
+
+#include <iostream>
+
+bool Complete(const sumire::TrieBase &trie, const char *prefix, int num_keys)
+{
+  sumire::UInt32 index = trie.root();
+  if (!trie.follow(index, prefix, &index))
+    return false;
+
+  sumire::BasicCompleter completer;
+  if (!completer.start(trie, index))
+    return false;
+
+  for (int i = 0; i < num_keys; ++i)
+  {
+    if (!completer.next())
+      break;
+
+    // Shows the completed key and its value.
+    std::cout << prefix << completer.key()
+              << ": " << completer.value() << std::endl;
+  }
+
+  return true;
+}
+}}}
+
 = Details =
 
 {{{
@@ -77,6 +111,8 @@ virtual const char *CompleterBase::key() const = 0
 This function returns the completed part of the current key,
 e.g. if the query is "app" and the current key is "apple",
 this function returns only "le".
+
+The returned string is terminated by zero.
 
 Note that key(), length(), and value() must be called after next() returns true.
 Also, a pointer returned by key() will be invalid after the next call of next().
