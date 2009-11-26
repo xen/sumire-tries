@@ -1,0 +1,73 @@
+#summary The base class of completers
+
+= Introduction =
+
+sumire::CompleterBase is the base class of completers.
+
+In sumire-tries, key completion is to find keys starting with a specified
+sequence, e.g. a completer returns "apple" and "application" when "app" is
+given as the query.
+
+CompleterBase defines a common interface for interactive key completion.
+The "interactive" means that a completer finds completed keys one by one,
+i.e. a system can terminate key completion any time.
+The common interface provides start() to initialize key completion and
+next() to get the first or next completed key.
+
+See also the documentation for derived classes.
+
+ * Derived classes
+  * BasicCompleter
+  * ValueOrderCompleter
+
+= Examples =
+
+= Details =
+
+{{{
+class CompleterBase
+{
+public:
+  CompleterBase();
+  virtual ~CompleterBase();
+
+  virtual bool start(const TrieBase &trie, UInt32 index) = 0;
+  virtual bool next() = 0;
+
+  virtual const char *key() const = 0;
+  virtual UInt32 length() const = 0;
+  virtual UInt32 value() const = 0;
+
+  virtual void clear() = 0;
+};
+}}}
+
+----
+
+{{{
+virtual bool CompleterBase::start(const TrieBase &trie, UInt32 index) = 0
+}}}
+
+----
+
+{{{
+virtual bool CompleterBase::next() = 0
+}}}
+
+----
+
+{{{
+virtual const char *CompleterBase::key() const = 0
+}}}
+
+----
+
+{{{
+virtual UInt32 CompleterBase::length() const = 0
+}}}
+
+----
+
+{{{
+virtual UInt32 CompleterBase::value() const = 0
+}}}
