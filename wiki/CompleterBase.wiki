@@ -14,6 +14,21 @@ i.e. a system can terminate key completion any time.
 The common interface provides start() to initialize key completion and
 next() to get the first or next completed key.
 
+A completer makes a traversal on a trie and returns completed keys,
+so the order of completed keys depends on how the traversal behaves.
+For example, sumire::BasicCompleter makes a depth-first (preorder)
+traversal, and thus the order of completed keys depends on the order
+of keys in the trie.
+And usually, sumire::BasicCompleter returns completed keys in sorted
+order because keys are inserted in sorted order.
+
+However, if the keys are specially ordered by using build() of
+sumire::BasicTrie, the order of completed keys changes.
+Also, there is a special combination that uses sumire::ValueOrderCompleter
+and a trie which is built with sumire::BasicTrie::MAX_VALUE_ORDER.
+This combination returns completed keys in descending order of the value,
+and this value order key completion is called weighted key completion.
+
 See also the documentation for derived classes.
 
  * Derived classes
