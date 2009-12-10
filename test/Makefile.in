@@ -15,7 +15,6 @@
 @SET_MAKE@
 
 
-
 VPATH = @srcdir@
 pkgdatadir = $(datadir)/@PACKAGE@
 pkglibdir = $(libdir)/@PACKAGE@
@@ -43,8 +42,8 @@ TESTS = test-int-types$(EXEEXT) test-object-io$(EXEEXT) \
 	test-value-order-completer$(EXEEXT)
 noinst_PROGRAMS = $(am__EXEEXT_1)
 subdir = test
-DIST_COMMON = $(dist_noinst_DATA) $(dist_noinst_HEADERS) \
-	$(srcdir)/Makefile.am $(srcdir)/Makefile.in
+DIST_COMMON = $(dist_noinst_HEADERS) $(srcdir)/Makefile.am \
+	$(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -133,7 +132,6 @@ DIST_SOURCES = $(test_basic_completer_SOURCES) \
 	$(test_object_pool_SOURCES) $(test_succinct_trie_SOURCES) \
 	$(test_ternary_trie_SOURCES) \
 	$(test_value_order_completer_SOURCES)
-DATA = $(dist_noinst_DATA)
 HEADERS = $(dist_noinst_HEADERS)
 ETAGS = etags
 CTAGS = ctags
@@ -243,7 +241,6 @@ test_da_trie_SOURCES = test-da-trie.cc
 test_basic_completer_SOURCES = test-basic-completer.cc
 test_value_order_completer_SOURCES = test-value-order-completer.cc
 dist_noinst_HEADERS = test-tools.h
-dist_noinst_DATA = test-keys.txt
 all: all-am
 
 .SUFFIXES:
@@ -520,7 +517,7 @@ distdir: $(DISTFILES)
 check-am: all-am
 	$(MAKE) $(AM_MAKEFLAGS) check-TESTS
 check: check-am
-all-am: Makefile $(PROGRAMS) $(DATA) $(HEADERS)
+all-am: Makefile $(PROGRAMS) $(HEADERS)
 installdirs:
 install: install-am
 install-exec: install-exec-am

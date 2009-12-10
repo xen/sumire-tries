@@ -6,8 +6,6 @@
 #include <cstring>
 #include <sstream>
 
-#include <iostream>
-
 int main()
 {
 	std::stringstream stream;
@@ -33,6 +31,8 @@ int main()
 	assert(buf[0] == 'a');
 	reader.read(buf, 6);
 	assert(std::strcmp(buf, "orange") == 0);
+
+	assert(!reader.read(&int_value));
 
 	std::string data = stream.str();
 	sumire::ObjectClipper clipper(&data[0]);

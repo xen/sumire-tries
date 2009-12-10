@@ -5,12 +5,11 @@
 
 namespace {
 
-void build_trie(const std::vector<std::string> &keys,
-	sumire::BasicTrie *trie)
+void build_trie(const test::Tools::KeysMap &keys, sumire::BasicTrie *trie)
 {
 	sumire::TrieBuilder builder;
-	for (sumire::UInt32 key_id = 0; key_id < keys.size(); ++key_id)
-		assert(builder.insert(keys[key_id].c_str(), key_id));
+	for (test::Tools::KeysIterator it = keys.begin(); it != keys.end(); ++it)
+		assert(builder.insert(it->first.c_str(), it->second));
 
 	assert(builder.finish() == true);
 
@@ -27,7 +26,7 @@ void build_trie(const std::vector<std::string> &keys,
 	FIND_ALL_KEYS(*trie, keys)
 }
 
-void convert_trie(const std::vector<std::string> &keys,
+void convert_trie(const test::Tools::KeysMap &keys,
 	const sumire::BasicTrie &src_trie)
 {
 	sumire::BasicTrie trie;
@@ -64,8 +63,8 @@ void convert_trie(const std::vector<std::string> &keys,
 
 int main()
 {
-	std::vector<std::string> keys;
-	test::Tools::read_keys("test-keys.txt", &keys);
+	test::Tools::KeysMap keys;
+	test::Tools::make_keys(&keys);
 
 	sumire::BasicTrie trie;
 

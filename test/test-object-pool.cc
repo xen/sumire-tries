@@ -4,21 +4,21 @@
 #include <sstream>
 
 #define CHECK_VALUES(pool) \
-	for (sumire::UInt32 i = 0; i < TEST_SIZE; ++i) \
+	for (sumire::UInt32 i = 0; i < POOL_SIZE; ++i) \
 		assert((pool)[i] == i);
 
 namespace {
 
 typedef sumire::ObjectPool<sumire::UInt32> PoolType;
 
-const sumire::UInt32 TEST_SIZE = 1 << 16;
+const sumire::UInt32 POOL_SIZE = 1 << 16;
 
 void make_pool(PoolType *pool)
 {
 	assert(pool->block_size() == sizeof(PoolType::Object)
 		* pool->num_objs_per_block());
 
-	for (sumire::UInt32 i = 0; i < TEST_SIZE; ++i)
+	for (sumire::UInt32 i = 0; i < POOL_SIZE; ++i)
 	{
 		assert(pool->alloc() == i);
 
@@ -68,7 +68,7 @@ void clear_pool(PoolType *pool)
 
 int main()
 {
-	sumire::ObjectPool<sumire::UInt32> pool;
+	PoolType pool;
 
 	make_pool(&pool);
 	test_io(pool);

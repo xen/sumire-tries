@@ -34,5 +34,3 @@ test_basic_completer_SOURCES = test-basic-completer.cc
 test_value_order_completer_SOURCES = test-value-order-completer.cc
 
 dist_noinst_HEADERS = test-tools.h
-
-dist_noinst_DATA = test-keys.txt

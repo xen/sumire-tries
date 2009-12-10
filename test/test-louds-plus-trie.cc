@@ -6,8 +6,8 @@
 
 int main()
 {
-	std::vector<std::string> keys;
-	test::Tools::read_keys("test-keys.txt", &keys);
+	test::Tools::KeysMap keys;
+	test::Tools::make_keys(&keys);
 
 	sumire::LoudsPlusTrie<> trie;
 	test::Tools::build_trie(keys, &trie);

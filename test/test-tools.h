@@ -1,21 +1,27 @@
 #ifndef TEST_TOOLS_H
 #define TEST_TOOLS_H
 
+#include <sumire/int-types.h>
+
 #include <cassert>
+#include <cstdlib>
+#include <ctime>
 #include <fstream>
 #include <iostream>
+#include <map>
 #include <sstream>
 #include <string>
 #include <vector>
 
 #define FIND_ALL_KEYS(trie, keys) \
-	for (sumire::UInt32 i = 0; i < (keys).size(); ++i) \
+	for (test::Tools::KeysIterator it = (keys).begin(); \
+		it != (keys).end(); ++it) \
 	{ \
 		sumire::UInt32 value; \
-		assert((trie).find((keys)[i].c_str(), &value)); \
-		assert(value == i); \
-		assert((trie).find((keys)[i].c_str(), (keys)[i].length(), &value)); \
-		assert(value == i); \
+		assert((trie).find(it->first.c_str(), &value)); \
+		assert(value == it->second); \
+		assert((trie).find(it->first.c_str(), it->first.length(), &value)); \
+		assert(value == it->second); \
 	}
 
 namespace test {
@@ -23,30 +29,31 @@ namespace test {
 class Tools
 {
 public:
-	static bool read_keys(const char *file_name,
-		std::vector<std::string> *keys)
-	{
-		std::ifstream file(file_name, std::ios::binary);
-		if (!file)
-		{
-			std::cerr << "error: failed to open file: "
-				<< file_name << std::endl;
-			return false;
-		}
+	enum { NUM_KEYS = 1 << 16 };
+	enum { KEY_LENGTH = 8 };
+	enum { MAX_VALUE = 100 };
 
-		std::string line;
-		while (std::getline(file, line))
-			keys->push_back(line);
-		return true;
+	typedef std::map<std::string, sumire::UInt32> KeysMap;
+	typedef KeysMap::const_iterator KeysIterator;
+
+	static void make_keys(KeysMap *keys)
+	{
+		std::srand(std::time(NULL));
+		char key[KEY_LENGTH + 1] = "";
+		while (keys->size() < NUM_KEYS)
+		{
+			for (int i = 0; i < KEY_LENGTH; ++i)
+				key[i] = 'A' + (std::rand() % 26);
+			keys->insert(std::make_pair(key, std::rand() % MAX_VALUE));
+		}
 	}
 
 	template <typename TRIE_TYPE>
-	static void build_trie(const std::vector<std::string> &keys,
-		TRIE_TYPE *trie)
+	static void build_trie(const KeysMap &keys, TRIE_TYPE *trie)
 	{
 		sumire::TrieBuilder builder;
-		for (sumire::UInt32 key_id = 0; key_id < keys.size(); ++key_id)
-			assert(builder.insert(keys[key_id].c_str(), key_id));
+		for (KeysIterator it = keys.begin(); it != keys.end(); ++it)
+			assert(builder.insert(it->first.c_str(), it->second));
 		assert(builder.finish() == true);
 
 		FIND_ALL_KEYS(builder.virtual_trie(), keys);
@@ -62,8 +69,7 @@ public:
 	}
 
 	template <typename TRIE_TYPE>
-	static void test_reload(const TRIE_TYPE &trie,
-		const std::vector<std::string> &keys)
+	static void test_reload(const TRIE_TYPE &trie, const KeysMap &keys)
 	{
 		std::stringstream stream;
 		assert(trie.write(&stream) == true);
@@ -75,8 +81,7 @@ public:
 	}
 
 	template <typename TRIE_TYPE>
-	static void test_map(const TRIE_TYPE &trie,
-		const std::vector<std::string> &keys)
+	static void test_map(const TRIE_TYPE &trie, const KeysMap &keys)
 	{
 		std::stringstream stream;
 		assert(trie.write(&stream) == true);

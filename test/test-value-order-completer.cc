@@ -12,24 +12,28 @@
 namespace {
 
 template <typename TRIE_TYPE>
-void test_completer(const TRIE_TYPE &trie,
-	const std::vector<std::string> &keys)
+void test_completer(const TRIE_TYPE &trie, const test::Tools::KeysMap &keys)
 {
 	sumire::ValueOrderCompleter completer;
 	assert(completer.start(trie, trie.root()) == true);
 
-	sumire::UInt32 key_id = keys.size();
+	sumire::UInt32 last_value = test::Tools::MAX_VALUE;
+	std::size_t num_results = 0;
 	while (completer.next())
 	{
-		--key_id;
-		assert(keys[key_id] == completer.key());
-		assert(key_id == completer.value());
+		test::Tools::KeysIterator it = keys.find(completer.key());
+		assert(it != keys.end());
+		assert(it->second == completer.value());
+		assert(completer.value() <= last_value);
+		last_value = completer.value();
+		++num_results;
 	}
+	assert(num_results == keys.size());
 }
 
 template <typename TRIE_TYPE>
 void test_trie(const sumire::TrieBase &basic_trie,
-	const std::vector<std::string> &keys)
+	const test::Tools::KeysMap &keys)
 {
 	TRIE_TYPE trie;
 	trie.build(basic_trie);
@@ -43,8 +47,8 @@ void test_trie(const sumire::TrieBase &basic_trie,
 
 int main()
 {
-	std::vector<std::string> keys;
-	test::Tools::read_keys("test-keys.txt", &keys);
+	test::Tools::KeysMap keys;
+	test::Tools::make_keys(&keys);
 
 	sumire::BasicTrie trie;
 	test::Tools::build_trie(keys, &trie);
