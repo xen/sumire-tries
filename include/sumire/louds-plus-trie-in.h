@@ -99,8 +99,7 @@ inline UInt32 LoudsPlusTrie<SUCCINCT_BIT_VECTOR_TYPE>::child(
 	UInt32 child_count = child_sbv_.rank_1(index);
 	assert(child_count < num_units());
 
-	return child_count + sibling_sbv_.rank_1(
-		sibling_sbv_.select_0(child_count));
+	return sibling_sbv_.select_0(child_count) + 1;
 }
 
 template <typename SUCCINCT_BIT_VECTOR_TYPE>
