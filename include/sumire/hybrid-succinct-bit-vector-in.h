@@ -63,7 +63,7 @@ inline void HybridSuccinctBitVector::build(const BitVector &bv)
 		if (left_bits < BITS_PER_UNIT)
 			left_shift = BITS_PER_UNIT - left_bits;
 
-		num_ones += pop_count(bv.unit(unit_id) << left_shift);
+		num_ones += pop_count(bv.unit(unit_id) << left_shift) >> 24;
 	}
 	UInt32 num_zeros = bv.num_bits() - num_ones;
 
@@ -98,8 +98,8 @@ inline UInt32 HybridSuccinctBitVector::rank_1(UInt32 index) const
 	UInt32 local_id = unit_id % UNITS_PER_BLOCK;
 	UInt32 bit_id = index % BITS_PER_UNIT;
 
-	return rank_blocks_[block_id].rank(local_id) + pop_count(units_[unit_id] &
-		(~UNIT_0 >> (BITS_PER_UNIT - bit_id - 1)));
+	return rank_blocks_[block_id].rank(local_id) + (pop_count(units_[unit_id] &
+		(~UNIT_0 >> (BITS_PER_UNIT - bit_id - 1))) >> 24);
 }
 
 inline UInt32 HybridSuccinctBitVector::rank_0(UInt32 index) const
@@ -138,17 +138,29 @@ inline UInt32 HybridSuccinctBitVector::select_1(UInt32 count) const
 
 	UInt32 index = (global_id * BITS_PER_BLOCK) + (local_id * BITS_PER_UNIT);
 	UInt32 unit = units_[index / BITS_PER_UNIT];
-	for (int div = 2; div <= BITS_PER_UNIT / 8; div *= 2)
-	{
-		UInt32 num_bits = BITS_PER_UNIT / div;
-		UInt32 num_ones = pop_count(unit & ((UNIT_1 << num_bits) - 1));
-		if (num_ones < count)
-		{
-			unit >>= num_bits;
-			index += num_bits;
-			count -= num_ones;
-		}
-	}
+	UInt32 bytes = pop_count(unit);
+
+	UInt64 offset = 0;
+	if (count <= ((bytes << 16) >> 24))
+		offset += 16;
+	if (count <= ((bytes << (offset + 8)) >> 24))
+		offset += 8;
+
+	count -= ((bytes << offset) << 8) >> 24;
+	unit >>= BITS_PER_UNIT - (offset + 8);
+	index += BITS_PER_UNIT - (offset + 8);
+
+//	for (int div = 2; div <= BITS_PER_UNIT / 8; div *= 2)
+//	{
+//		UInt32 num_bits = BITS_PER_UNIT / div;
+//		UInt32 num_ones = pop_count(unit & ((UNIT_1 << num_bits) - 1));
+//		if (num_ones < count)
+//		{
+//			unit >>= num_bits;
+//			index += num_bits;
+//			count -= num_ones;
+//		}
+//	}
 
 	while (count > 0)
 	{
@@ -194,18 +206,29 @@ inline UInt32 HybridSuccinctBitVector::select_0(UInt32 count) const
 
 	UInt32 index = (global_id * BITS_PER_BLOCK) + (local_id * BITS_PER_UNIT);
 	UInt32 unit = units_[index / BITS_PER_UNIT];
-	for (int div = 2; div <= BITS_PER_UNIT / 8; div *= 2)
-	{
-		UInt32 num_bits = BITS_PER_UNIT / div;
-		UInt32 num_zeros = num_bits
-			- pop_count(unit & ((UNIT_1 << num_bits) - 1));
-		if (num_zeros < count)
-		{
-			unit >>= num_bits;
-			index += num_bits;
-			count -= num_zeros;
-		}
-	}
+	UInt32 bytes = pop_count(~unit);
+
+	UInt64 offset = 0;
+	if (count <= ((bytes << 16) >> 24))
+		offset += 16;
+	if (count <= ((bytes << (offset + 8)) >> 24))
+		offset += 8;
+
+	count -= ((bytes << offset) << 8) >> 24;
+	unit >>= BITS_PER_UNIT - (offset + 8);
+	index += BITS_PER_UNIT - (offset + 8);
+//	for (int div = 2; div <= BITS_PER_UNIT / 8; div *= 2)
+//	{
+//		UInt32 num_bits = BITS_PER_UNIT / div;
+//		UInt32 num_zeros = num_bits
+//			- pop_count(unit & ((UNIT_1 << num_bits) - 1));
+//		if (num_zeros < count)
+//		{
+//			unit >>= num_bits;
+//			index += num_bits;
+//			count -= num_zeros;
+//		}
+//	}
 
 	while (count > 0)
 	{
@@ -376,8 +399,9 @@ inline UInt32 HybridSuccinctBitVector::pop_count(UInt32 unit)
 	unit = ((unit & 0xAAAAAAAA) >> 1) + (unit & 0x55555555);
 	unit = ((unit & 0xCCCCCCCC) >> 2) + (unit & 0x33333333);
 	unit = ((unit >> 4) + unit) & 0x0F0F0F0F;
-	unit = (unit >> 8) + unit;
-	return ((unit >> 16) + unit) & 0x3F;
+	unit += unit << 8;
+	unit += unit << 16;
+	return unit;
 }
 
 }  // namespace sumire
