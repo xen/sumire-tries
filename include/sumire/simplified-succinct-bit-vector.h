@@ -73,6 +73,7 @@ private:
 		const SimplifiedSuccinctBitVector &);
 
 	static UInt32 pop_count(UInt32 unit);
+	static UInt32 pop_count_ex(UInt32 unit);
 };
 
 }  // namespace sumire
