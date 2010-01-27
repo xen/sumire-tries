@@ -72,11 +72,17 @@ template <typename SUCCINCT_BIT_VECTOR_TYPE>
 inline UInt32 LoudsTrie<SUCCINCT_BIT_VECTOR_TYPE>::find_child(
 	UInt32 index, UInt8 child_label) const
 {
-	for (UInt32 child_index = child(index); child_index != 0;
-		child_index = sibling(child_index))
+	UInt32 child_index = child(index);
+	if (child_index != 0)
 	{
-		if (label(child_index) == child_label)
-			return child_index;
+		UInt32 node_index = louds_sbv_.rank_1(child_index) - 1;
+		do
+		{
+			if (labels_[node_index] == child_label)
+				return child_index;
+			child_index = sibling(child_index);
+			++node_index;
+		} while (child_index != 0);
 	}
 	return 0;
 }

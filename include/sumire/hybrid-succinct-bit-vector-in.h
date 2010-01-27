@@ -150,18 +150,6 @@ inline UInt32 HybridSuccinctBitVector::select_1(UInt32 count) const
 	unit >>= BITS_PER_UNIT - (offset + 8);
 	index += BITS_PER_UNIT - (offset + 8);
 
-//	for (int div = 2; div <= BITS_PER_UNIT / 8; div *= 2)
-//	{
-//		UInt32 num_bits = BITS_PER_UNIT / div;
-//		UInt32 num_ones = pop_count(unit & ((UNIT_1 << num_bits) - 1));
-//		if (num_ones < count)
-//		{
-//			unit >>= num_bits;
-//			index += num_bits;
-//			count -= num_ones;
-//		}
-//	}
-
 	while (count > 0)
 	{
 		if (unit & 1)
@@ -217,18 +205,6 @@ inline UInt32 HybridSuccinctBitVector::select_0(UInt32 count) const
 	count -= ((bytes << offset) << 8) >> 24;
 	unit >>= BITS_PER_UNIT - (offset + 8);
 	index += BITS_PER_UNIT - (offset + 8);
-//	for (int div = 2; div <= BITS_PER_UNIT / 8; div *= 2)
-//	{
-//		UInt32 num_bits = BITS_PER_UNIT / div;
-//		UInt32 num_zeros = num_bits
-//			- pop_count(unit & ((UNIT_1 << num_bits) - 1));
-//		if (num_zeros < count)
-//		{
-//			unit >>= num_bits;
-//			index += num_bits;
-//			count -= num_zeros;
-//		}
-//	}
 
 	while (count > 0)
 	{
