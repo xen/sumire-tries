@@ -1,5 +1,5 @@
-#ifndef SUMIRE_LOUDS_TRIE_IN_H
-#define SUMIRE_LOUDS_TRIE_IN_H
+#ifndef SUMIRE_SUCCINCT_TRIE_IN_H
+#define SUMIRE_SUCCINCT_TRIE_IN_H
 
 #include "object-io.h"
 
@@ -9,14 +9,13 @@
 namespace sumire {
 
 template <typename SUCCINCT_BIT_VECTOR_TYPE>
-inline bool LoudsTrie<SUCCINCT_BIT_VECTOR_TYPE>::build(const TrieBase &trie)
+inline bool SuccinctTrie<SUCCINCT_BIT_VECTOR_TYPE>::build(
+	const TrieBase &trie)
 {
 	if (trie.num_nodes() == 0)
 		return false;
 
-	BitVector louds_bv, has_value_bv;
-	louds_bv.add(true);
-	louds_bv.add(false);
+	BitVector tree_bv, has_value_bv;
 
 	ObjectArray<UInt8> labels;
 	ObjectArray<UInt32> values;
@@ -41,26 +40,28 @@ inline bool LoudsTrie<SUCCINCT_BIT_VECTOR_TYPE>::build(const TrieBase &trie)
 			values[value_index++] = value;
 		has_value_bv.add(has_value);
 
-		for (UInt32 child_index = trie.child(index); child_index != 0;
-			child_index = trie.sibling(child_index))
-		{
-			louds_bv.add(true);
+		UInt32 child_index = trie.child(index);
+		tree_bv.add(child_index != 0);
+		if (child_index != 0)
 			queue.push(child_index);
-		}
-		louds_bv.add(false);
+
+		UInt32 sibling_index = trie.sibling(index);
+		tree_bv.add(sibling_index != 0);
+		if (sibling_index != 0)
+			queue.push(sibling_index);
 	}
 
-	assert(louds_bv.num_bits() == (trie.num_nodes() * 2) + 1);
+	assert(tree_bv.num_bits() == trie.num_nodes() * 2);
 	assert(has_value_bv.num_bits() == trie.num_nodes());
 	assert(label_index == labels.num_objs());
 	assert(value_index == values.num_objs());
 
-	SuccinctBitVector louds_sbv, has_value_sbv;
-	louds_sbv.build(louds_bv);
+	SuccinctBitVector tree_sbv, has_value_sbv;
+	tree_sbv.build(tree_bv);
 	has_value_sbv.build(has_value_bv);
 
 	clear();
-	louds_sbv_.swap(&louds_sbv);
+	tree_sbv_.swap(&tree_sbv);
 	has_value_sbv_.swap(&has_value_sbv);
 	labels_.swap(&labels);
 	values_.swap(&values);
@@ -69,58 +70,53 @@ inline bool LoudsTrie<SUCCINCT_BIT_VECTOR_TYPE>::build(const TrieBase &trie)
 }
 
 template <typename SUCCINCT_BIT_VECTOR_TYPE>
-inline UInt32 LoudsTrie<SUCCINCT_BIT_VECTOR_TYPE>::find_child(
+inline UInt32 SuccinctTrie<SUCCINCT_BIT_VECTOR_TYPE>::find_child(
 	UInt32 index, UInt8 child_label) const
 {
-	UInt32 child_index = child(index);
-	if (child_index != 0)
+	for (UInt32 child_index = child(index); child_index != 0;
+		child_index = sibling(child_index))
 	{
-		UInt32 node_index = louds_sbv_.rank_1(child_index) - 1;
-		do
-		{
-			if (labels_[node_index] == child_label)
-				return child_index;
-			child_index = sibling(child_index);
-			++node_index;
-		} while (child_index != 0);
+		if (label(child_index) == child_label)
+			return child_index;
 	}
 	return 0;
 }
 
 template <typename SUCCINCT_BIT_VECTOR_TYPE>
-inline UInt32 LoudsTrie<SUCCINCT_BIT_VECTOR_TYPE>::child(UInt32 index) const
+inline UInt32 SuccinctTrie<SUCCINCT_BIT_VECTOR_TYPE>::child(
+	UInt32 index) const
 {
 	assert(index < num_units());
 
-	UInt32 child_index = louds_sbv_.select_0(louds_sbv_.rank_1(index)) + 1;
-	return louds_sbv_[child_index] ? child_index : 0;
+	return tree_sbv_[index] ? (tree_sbv_.rank_1(index) * 2) : 0;
 }
 
 template <typename SUCCINCT_BIT_VECTOR_TYPE>
-inline UInt32 LoudsTrie<SUCCINCT_BIT_VECTOR_TYPE>::sibling(UInt32 index) const
+inline UInt32 SuccinctTrie<SUCCINCT_BIT_VECTOR_TYPE>::sibling(
+	UInt32 index) const
+{
+	assert(index + 1 < num_units());
+
+	++index;
+	return tree_sbv_[index] ? (tree_sbv_.rank_1(index) * 2) : 0;
+}
+
+template <typename SUCCINCT_BIT_VECTOR_TYPE>
+inline UInt8 SuccinctTrie<SUCCINCT_BIT_VECTOR_TYPE>::label(UInt32 index) const
 {
 	assert(index < num_units());
 
-	return louds_sbv_[index + 1] ? (index + 1) : 0;
+	UInt32 node_id = index / 2;
+	return labels_[node_id];
 }
 
 template <typename SUCCINCT_BIT_VECTOR_TYPE>
-inline UInt8 LoudsTrie<SUCCINCT_BIT_VECTOR_TYPE>::label(UInt32 index) const
-{
-	assert(index < num_units());
-
-	return labels_[louds_sbv_.rank_1(index) - 1];
-}
-
-template <typename SUCCINCT_BIT_VECTOR_TYPE>
-inline bool LoudsTrie<SUCCINCT_BIT_VECTOR_TYPE>::get_value(
+inline bool SuccinctTrie<SUCCINCT_BIT_VECTOR_TYPE>::get_value(
 	UInt32 index, UInt32 *value_ptr) const
 {
 	assert(index < num_units());
 
-	UInt32 node_id = louds_sbv_.rank_1(index) - 1;
-	assert(node_id < num_nodes());
-
+	UInt32 node_id = index / 2;
 	if (!has_value_sbv_[node_id])
 		return false;
 
@@ -135,29 +131,29 @@ inline bool LoudsTrie<SUCCINCT_BIT_VECTOR_TYPE>::get_value(
 }
 
 template <typename SUCCINCT_BIT_VECTOR_TYPE>
-inline UInt32 LoudsTrie<SUCCINCT_BIT_VECTOR_TYPE>::size() const
+inline UInt32 SuccinctTrie<SUCCINCT_BIT_VECTOR_TYPE>::size() const
 {
-	return louds_sbv_.size() + has_value_sbv_.size()
+	return tree_sbv_.size() + has_value_sbv_.size()
 		+ labels_.size() + values_.size();
 }
 
 template <typename SUCCINCT_BIT_VECTOR_TYPE>
-inline void LoudsTrie<SUCCINCT_BIT_VECTOR_TYPE>::clear()
+inline void SuccinctTrie<SUCCINCT_BIT_VECTOR_TYPE>::clear()
 {
-	louds_sbv_.clear();
+	tree_sbv_.clear();
 	has_value_sbv_.clear();
 	labels_.clear();
 	values_.clear();
 }
 
 template <typename SUCCINCT_BIT_VECTOR_TYPE>
-inline void *LoudsTrie<SUCCINCT_BIT_VECTOR_TYPE>::map(void *addr)
+inline void *SuccinctTrie<SUCCINCT_BIT_VECTOR_TYPE>::map(void *addr)
 {
 	assert(addr != NULL);
 
 	clear();
 
-	addr = louds_sbv_.map(addr);
+	addr = tree_sbv_.map(addr);
 	addr = has_value_sbv_.map(addr);
 	addr = labels_.map(addr);
 	addr = values_.map(addr);
@@ -166,12 +162,12 @@ inline void *LoudsTrie<SUCCINCT_BIT_VECTOR_TYPE>::map(void *addr)
 }
 
 template <typename SUCCINCT_BIT_VECTOR_TYPE>
-inline bool LoudsTrie<SUCCINCT_BIT_VECTOR_TYPE>::read(std::istream *input)
+inline bool SuccinctTrie<SUCCINCT_BIT_VECTOR_TYPE>::read(std::istream *input)
 {
 	assert(input != NULL);
 
-	SuccinctBitVector louds_sbv, has_value_sbv;
-	if (!louds_sbv.read(input) || !has_value_sbv.read(input))
+	SuccinctBitVector tree_sbv, has_value_sbv;
+	if (!tree_sbv.read(input) || !has_value_sbv.read(input))
 		return false;
 
 	ObjectArray<UInt8> labels;
@@ -183,7 +179,7 @@ inline bool LoudsTrie<SUCCINCT_BIT_VECTOR_TYPE>::read(std::istream *input)
 		return false;
 
 	clear();
-	louds_sbv_.swap(&louds_sbv);
+	tree_sbv_.swap(&tree_sbv);
 	has_value_sbv_.swap(&has_value_sbv);
 	labels_.swap(&labels);
 	values_.swap(&values);
@@ -192,12 +188,12 @@ inline bool LoudsTrie<SUCCINCT_BIT_VECTOR_TYPE>::read(std::istream *input)
 }
 
 template <typename SUCCINCT_BIT_VECTOR_TYPE>
-inline bool LoudsTrie<SUCCINCT_BIT_VECTOR_TYPE>::write(
+inline bool SuccinctTrie<SUCCINCT_BIT_VECTOR_TYPE>::write(
 	std::ostream *output) const
 {
 	assert(output != NULL);
 
-	if (!louds_sbv_.write(output) || !has_value_sbv_.write(output))
+	if (!tree_sbv_.write(output) || !has_value_sbv_.write(output))
 		return false;
 
 	if (!labels_.write(output) || !values_.write(output))
@@ -207,11 +203,11 @@ inline bool LoudsTrie<SUCCINCT_BIT_VECTOR_TYPE>::write(
 }
 
 template <typename SUCCINCT_BIT_VECTOR_TYPE>
-inline void LoudsTrie<SUCCINCT_BIT_VECTOR_TYPE>::swap(LoudsTrie *target)
+inline void SuccinctTrie<SUCCINCT_BIT_VECTOR_TYPE>::swap(SuccinctTrie *target)
 {
 	assert(target != NULL);
 
-	louds_sbv_.swap(&target->louds_sbv_);
+	tree_sbv_.swap(&target->tree_sbv_);
 	has_value_sbv_.swap(&target->has_value_sbv_);
 	labels_.swap(&target->labels_);
 	values_.swap(&target->values_);
@@ -219,4 +215,4 @@ inline void LoudsTrie<SUCCINCT_BIT_VECTOR_TYPE>::swap(LoudsTrie *target)
 
 }  // namespace sumire
 
-#endif  // SUMIRE_LOUDS_TRIE_IN_H
+#endif  // SUMIRE_SUCCINCT_TRIE_IN_H
