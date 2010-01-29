@@ -2,6 +2,7 @@
 #define SUMIRE_HYBRID_SUCCINCT_BIT_VECTOR_IN_H
 
 #include "object-io.h"
+#include "select-table.h"
 
 #include <cassert>
 
@@ -150,13 +151,7 @@ inline UInt32 HybridSuccinctBitVector::select_1(UInt32 count) const
 	unit >>= BITS_PER_UNIT - (offset + 8);
 	index += BITS_PER_UNIT - (offset + 8);
 
-	while (count > 0)
-	{
-		if (unit & 1)
-			--count;
-		unit /= 2;
-		++index;
-	}
+	index += SelectTable::lookup(true, count, unit);
 
 	return index - 1;
 }
@@ -206,13 +201,7 @@ inline UInt32 HybridSuccinctBitVector::select_0(UInt32 count) const
 	unit >>= BITS_PER_UNIT - (offset + 8);
 	index += BITS_PER_UNIT - (offset + 8);
 
-	while (count > 0)
-	{
-		if (~unit & 1)
-			--count;
-		unit /= 2;
-		++index;
-	}
+	index += SelectTable::lookup(false, count, unit);
 
 	return index - 1;
 }

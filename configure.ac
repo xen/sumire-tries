@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.61)
-AC_INIT(sumire, 0.3.4, syata@acm.org)
+AC_INIT(sumire, 0.3.5, syata@acm.org)
 AC_CONFIG_SRCDIR([include/sumire/int-types.h])
 AM_INIT_AUTOMAKE
 
